@@ -104,21 +104,100 @@ async function fetchArticle(url) {
 
   const html = await response.text();
   const dom = new JSDOM(html, { url });
+  const sourcePlatform = detectPlatform(url);
+
+  // Platform-specific extraction for JS-heavy sites
+  if (sourcePlatform === "youtube") {
+    return extractYouTube(dom, url, html);
+  }
+  if (sourcePlatform === "twitter") {
+    return extractFromMetaTags(dom, url, sourcePlatform);
+  }
+
   const reader = new Readability(dom.window.document);
   const article = reader.parse();
 
   const title =
     article?.title ||
+    getMetaContent(dom, "og:title") ||
     dom.window.document.querySelector("title")?.textContent ||
     "Untitled";
 
-  const textContent = article?.textContent?.trim() || "";
-  const excerpt = article?.excerpt || "";
+  let textContent = article?.textContent?.trim() || "";
+  const excerpt = article?.excerpt || getMetaContent(dom, "og:description") || "";
 
-  // Detect source platform from URL
-  const sourcePlatform = detectPlatform(url);
+  // If Readability got very little content, fall back to meta tags
+  if (textContent.length < 100) {
+    const metaDesc = getMetaContent(dom, "og:description") || getMetaContent(dom, "description") || "";
+    if (metaDesc.length > textContent.length) {
+      textContent = metaDesc;
+    }
+  }
 
   return { title, textContent, excerpt, sourcePlatform, url };
+}
+
+function getMetaContent(dom, name) {
+  const doc = dom.window.document;
+  return (
+    doc.querySelector(`meta[property="${name}"]`)?.getAttribute("content") ||
+    doc.querySelector(`meta[name="${name}"]`)?.getAttribute("content") ||
+    ""
+  );
+}
+
+function extractYouTube(dom, url, html) {
+  const title = getMetaContent(dom, "og:title") || getMetaContent(dom, "title") || "YouTube Video";
+  const description = getMetaContent(dom, "og:description") || getMetaContent(dom, "description") || "";
+  const channel = getMetaContent(dom, "og:site_name") || "";
+  const keywords = getMetaContent(dom, "keywords") || "";
+
+  // Try to extract richer data from ytInitialPlayerResponse in page source
+  let fullDescription = description;
+  let channelName = channel;
+  try {
+    const playerMatch = html.match(/ytInitialPlayerResponse\s*=\s*(\{.+?\});\s*(?:var|<\/script)/s);
+    if (playerMatch) {
+      const playerData = JSON.parse(playerMatch[1]);
+      const videoDetails = playerData?.videoDetails;
+      if (videoDetails) {
+        fullDescription = videoDetails.shortDescription || fullDescription;
+        channelName = videoDetails.author || channelName;
+      }
+    }
+  } catch { /* JSON parse failed, use meta tags */ }
+
+  // Build rich text content for the AI
+  const textContent = [
+    `Video Title: ${title}`,
+    channelName ? `Channel: ${channelName}` : "",
+    `Description: ${fullDescription}`,
+    keywords ? `Keywords: ${keywords}` : "",
+  ].filter(Boolean).join("\n\n");
+
+  console.log(`🎬 YouTube: "${title}" by ${channelName || "unknown"}`);
+
+  return {
+    title,
+    textContent,
+    excerpt: fullDescription.slice(0, 300),
+    sourcePlatform: "youtube",
+    url,
+  };
+}
+
+function extractFromMetaTags(dom, url, sourcePlatform) {
+  const title = getMetaContent(dom, "og:title") ||
+    dom.window.document.querySelector("title")?.textContent || "Untitled";
+  const description = getMetaContent(dom, "og:description") || getMetaContent(dom, "description") || "";
+
+  return {
+    title,
+    textContent: `${title}\n\n${description}`,
+    excerpt: description.slice(0, 300),
+    sourcePlatform,
+    url,
+  };
 }
 
 function detectPlatform(url) {
