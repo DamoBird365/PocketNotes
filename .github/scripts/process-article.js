@@ -151,54 +151,87 @@ function getMetaContent(dom, name) {
 }
 
 function extractYouTube(dom, url, html) {
-  const title = getMetaContent(dom, "og:title") || getMetaContent(dom, "title") || "";
-  const description = getMetaContent(dom, "og:description") || getMetaContent(dom, "description") || "";
-  const channel = getMetaContent(dom, "og:site_name") || "";
-  const keywords = getMetaContent(dom, "keywords") || "";
+  let title = getMetaContent(dom, "og:title") || getMetaContent(dom, "title") || "";
+  let description = getMetaContent(dom, "og:description") || getMetaContent(dom, "description") || "";
+  let channelName = "";
 
-  console.log(`🎬 Meta og:title: "${title}"`);
-  console.log(`🎬 Meta og:description: "${description.slice(0, 80)}..."`);
-
-  // Try to extract richer data from ytInitialPlayerResponse in page source
-  let fullDescription = description;
-  let channelName = channel;
-  let videoTitle = title;
+  // Try ytInitialPlayerResponse first (richest data)
   try {
     const playerMatch = html.match(/ytInitialPlayerResponse\s*=\s*(\{.+?\});\s*(?:var|<\/script)/s);
     if (playerMatch) {
       const playerData = JSON.parse(playerMatch[1]);
       const videoDetails = playerData?.videoDetails;
-      if (videoDetails) {
-        videoTitle = videoDetails.title || videoTitle;
-        fullDescription = videoDetails.shortDescription || fullDescription;
-        channelName = videoDetails.author || channelName;
-        console.log(`🎬 ytPlayerResponse: "${videoTitle}" by ${channelName}`);
+      if (videoDetails?.title) {
+        title = videoDetails.title;
+        description = videoDetails.shortDescription || description;
+        channelName = videoDetails.author || "";
+        console.log(`🎬 ytPlayerResponse: "${title}" by ${channelName}`);
       }
     }
   } catch (e) {
-    console.warn(`⚠️  Could not parse ytInitialPlayerResponse: ${e.message}`);
+    console.warn(`⚠️  ytInitialPlayerResponse parse failed: ${e.message}`);
   }
 
-  // Use the best title available
-  const finalTitle = videoTitle || title || "YouTube Video";
+  // If we still don't have a real title, fall back to oEmbed API (always works)
+  if (!title || title === "YouTube" || title.endsWith("- YouTube")) {
+    console.log("🎬 Meta tags empty — trying oEmbed API...");
+    return fetchYouTubeOEmbed(url, description);
+  }
 
-  // Build rich text content for the AI
+  const keywords = getMetaContent(dom, "keywords") || "";
   const textContent = [
-    `Video Title: ${finalTitle}`,
+    `Video Title: ${title}`,
     channelName ? `Channel: ${channelName}` : "",
-    `Description: ${fullDescription}`,
+    `Description: ${description}`,
     keywords ? `Keywords: ${keywords}` : "",
   ].filter(Boolean).join("\n\n");
 
-  console.log(`🎬 YouTube: "${finalTitle}" by ${channelName || "unknown"}`);
+  console.log(`🎬 YouTube: "${title}" by ${channelName || "unknown"}`);
 
   return {
-    title: finalTitle,
+    title,
     textContent,
-    excerpt: fullDescription.slice(0, 300),
+    excerpt: description.slice(0, 300),
     sourcePlatform: "youtube",
     url,
   };
+}
+
+async function fetchYouTubeOEmbed(url, fallbackDescription) {
+  try {
+    const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`;
+    const res = await fetch(oembedUrl, { signal: AbortSignal.timeout(10_000) });
+    if (!res.ok) throw new Error(`oEmbed HTTP ${res.status}`);
+    const data = await res.json();
+
+    const title = data.title || "YouTube Video";
+    const channelName = data.author_name || "";
+
+    console.log(`🎬 oEmbed: "${title}" by ${channelName}`);
+
+    const textContent = [
+      `Video Title: ${title}`,
+      channelName ? `Channel: ${channelName}` : "",
+      fallbackDescription ? `Description: ${fallbackDescription}` : "",
+    ].filter(Boolean).join("\n\n");
+
+    return {
+      title,
+      textContent,
+      excerpt: fallbackDescription?.slice(0, 300) || `YouTube video: ${title}`,
+      sourcePlatform: "youtube",
+      url,
+    };
+  } catch (e) {
+    console.warn(`⚠️  oEmbed failed: ${e.message}`);
+    return {
+      title: "YouTube Video",
+      textContent: `YouTube video at ${url}`,
+      excerpt: "",
+      sourcePlatform: "youtube",
+      url,
+    };
+  }
 }
 
 function extractFromMetaTags(dom, url, sourcePlatform) {
@@ -440,7 +473,14 @@ function generateFilename(article, config) {
     .slice(0, 80);
 
   const format = config.article.filename_format || "{date}-{slug}";
-  const filename = format.replace("{date}", date).replace("{slug}", slug);
+  let filename = format.replace("{date}", date).replace("{slug}", slug);
+  let filepath = join(ARTICLES_DIR, `${filename}.md`);
+
+  // Avoid filename collisions — append a short timestamp if file exists
+  if (existsSync(filepath)) {
+    const ts = Date.now().toString(36);
+    filename = `${filename}-${ts}`;
+  }
 
   return `${filename}.md`;
 }
