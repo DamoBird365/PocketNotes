@@ -127,13 +127,14 @@ See [docs/custom-ai-provider.md](docs/custom-ai-provider.md) for using your own 
 
 - **GitHub Search**: Use the repo's search bar to find articles by title, tag, or content
 - **GitHub Copilot**: Ask Copilot about your saved articles directly in the repo
-- **Copilot Spaces**: Create a Space pointing at your PocketNotes repo for conversational search
-- **Future**: Designed for easy integration with RAG pipelines and vector search
+- **Copilot Spaces** ⭐: Create a Space pointing at your `articles/` folder for conversational search — ask *"What have I saved about Power Automate?"* and get grounded answers. See [docs/copilot-spaces.md](docs/copilot-spaces.md) for setup.
+- **Future**: Designed for easy integration with RAG pipelines, RSS feeds, and vector search
 
 ## 📚 Documentation
 
 - [Setting up the browser extension](docs/setup-extension.md)
 - [Setting up the iOS Shortcut](docs/setup-ios-shortcut.md)
+- [Copilot Spaces — conversational search](docs/copilot-spaces.md) ⭐
 - [Using a custom AI provider](docs/custom-ai-provider.md)
 - [Publishing to extension stores](docs/publishing-extension.md)
 - [Privacy policy](docs/privacy-policy.md)

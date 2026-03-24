@@ -5,6 +5,7 @@ url: https://developer.microsoft.com/blog/build-a-real-world-example-with-micros
 date_saved: 2026-03-24T17:04:34.528Z
 content_type: blog-post
 source_platform: microsoft-developer
+author: "Justin Yoo"
 summary: The article introduces the open-source Interview Coach sample
   application that demonstrates the integration of Microsoft Agent Framework,
   Microsoft Foundry, Model Context Protocol (MCP), and Aspire in building AI

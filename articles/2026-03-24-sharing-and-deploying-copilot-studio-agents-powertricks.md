@@ -4,6 +4,7 @@ url: https://powertricks.io/sharing-and-deploying-copilot-studio-agents/
 date_saved: 2026-03-24T17:12:08.043Z
 content_type: article
 source_platform: web
+author: "Valentin Mazhar"
 summary: The article provides a comprehensive overview of sharing and deploying
   agents in Copilot Studio, emphasizing the complexities surrounding
   permissions, roles, and governance. It clarifies the requirements for

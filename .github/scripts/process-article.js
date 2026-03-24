@@ -154,6 +154,7 @@ function extractAuthor(dom, readabilityArticle) {
     getMetaContent(dom, "og:article:author") ||
     getMetaContent(dom, "twitter:creator") ||
     getMetaContent(dom, "citation_author") ||
+    getMetaContent(dom, "dc.creator") ||
     "";
 
   if (authorMeta) return authorMeta;
@@ -161,12 +162,15 @@ function extractAuthor(dom, readabilityArticle) {
   // Try Readability's byline
   if (readabilityArticle?.byline) return readabilityArticle.byline;
 
-  // Try schema.org JSON-LD
+  // Try schema.org JSON-LD (including @graph arrays)
   try {
     const scripts = doc.querySelectorAll('script[type="application/ld+json"]');
     for (const script of scripts) {
       const data = JSON.parse(script.textContent);
-      const items = Array.isArray(data) ? data : [data];
+      // Flatten @graph arrays and top-level items
+      const items = data?.["@graph"]
+        ? data["@graph"]
+        : Array.isArray(data) ? data : [data];
       for (const item of items) {
         const authorObj = item?.author;
         if (typeof authorObj === "string") return authorObj;

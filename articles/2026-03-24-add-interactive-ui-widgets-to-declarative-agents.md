@@ -4,6 +4,7 @@ url: https://learn.microsoft.com/en-us/microsoft-365/copilot/extensibility/decla
 date_saved: 2026-03-24T16:55:27.049Z
 content_type: documentation
 source_platform: microsoft-learn
+author: "jasonjoh"
 summary: The article discusses how to integrate interactive UI widgets into
   declarative agents using a Model Context Protocol (MCP) server and the OpenAI
   Apps SDK within Microsoft 365 Copilot. It outlines the prerequisites, best
