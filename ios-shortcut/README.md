@@ -1,90 +1,79 @@
-# 📱 PocketNotes iOS Shortcut
+# 📱 PocketNotes on Mobile
 
-Save articles from **any app** on your iPhone or iPad using the iOS Share Sheet.
+Save articles from **any app** on your iPhone, iPad, or Android device.
 
-## How It Works
+## Option 1: Web App (Recommended — works everywhere)
 
-The Shortcut appears in your Share Sheet when you tap the share button in any app (Chrome, Safari, Twitter, LinkedIn, etc.). It sends the URL to your GitHub repo, which triggers the same GitHub Action that processes articles from the browser extension.
+PocketNotes has a lightweight web app you can add to your Home Screen. It works like a native app.
 
-## Quick Install (Download the Shortcut File)
+### Install
 
-The easiest way to install is to download the pre-built Shortcut file:
+1. Open **[https://damobird365.github.io/PocketNotes/](https://damobird365.github.io/PocketNotes/)** on your phone
+2. **iPhone**: Tap Share (📤) → **"Add to Home Screen"**
+3. **Android**: Tap the menu (⋮) → **"Add to Home Screen"** or **"Install App"**
+4. Open the app → enter your GitHub PAT and repo details → **Save & Continue**
 
-1. **On your iPhone**, open this page in Safari or Chrome
-2. Tap the **[PocketNotes.shortcut](PocketNotes.shortcut)** file link
-3. iOS will ask to open it in the **Shortcuts** app — tap **"Open"**
-4. During import, you'll be prompted for two things:
-   - **GitHub Personal Access Token** — paste the same PAT you use for the browser extension
-   - **GitHub repo path** — enter `your-username/PocketNotes` (e.g. `DamoBird365/PocketNotes`)
-5. Tap **"Add Shortcut"**
-6. That's it! PocketNotes now appears in your Share Sheet 🎉
+### Usage
 
-> **Note**: If you see a message about "Untrusted Shortcuts", go to **Settings → Shortcuts** and enable **"Allow Untrusted Shortcuts"**. You need to have run at least one shortcut before this option appears.
+**Method A — Paste (fastest)**:
+1. Copy the article URL from any app
+2. Open PocketNotes from your Home Screen
+3. Tap the clipboard area → URL is pasted automatically
+4. Tap **"📌 Save to PocketNotes"**
 
-## Using the Shortcut
+**Method B — iOS Share Sheet** (optional, needs a 2-action Shortcut):
 
-1. Open any app (Chrome, Safari, Twitter, LinkedIn, etc.)
-2. Find an article you want to save
-3. Tap the **Share** button (📤)
-4. Scroll down and tap **"PocketNotes"**
-5. You'll see a notification: "📌 Saved to PocketNotes!"
+Create this tiny Shortcut to add PocketNotes to your Share Sheet:
 
-### Tip: Move PocketNotes Higher in the Share Sheet
+1. Open the **Shortcuts** app → tap **+**
+2. Name it **"PocketNotes"**
+3. Tap the **ⓘ** (or dropdown) → enable **"Show in Share Sheet"** → Receive: **URLs**
+4. Add action: **"Open URLs"**
+5. For the URL, tap the blue **"URL"** placeholder and change it to:
+   ```
+   https://damobird365.github.io/PocketNotes/?url=
+   ```
+   then tap **+** and insert **"Shortcut Input"** at the end
+6. Done! Now when you share from any app, tap "PocketNotes" and it opens the web app with the URL pre-filled
 
-1. Open the Share Sheet from any app
-2. Scroll to the bottom of the actions list
-3. Tap **"Edit Actions..."**
-4. Find PocketNotes and tap the **green +** button to add it to Favourites
+## Option 2: Direct API Shortcut (No web app needed)
 
-## What the Shortcut Does (Under the Hood)
+If you prefer a fully offline Shortcut that calls GitHub directly:
 
-```
-┌─────────────────────────────────────┐
-│  Receive URL from Share Sheet       │
-├─────────────────────────────────────┤
-│  Load saved Token + Repo path       │
-├─────────────────────────────────────┤
-│  Extract URL from shared content    │
-├─────────────────────────────────────┤
-│  POST to GitHub API:                │
-│  /repos/{Repo}/actions/workflows/   │
-│  process-article.yml/dispatches     │
-│  with Authorization: Bearer {Token} │
-│  Body: {"ref":"main",              │
-│         "inputs":{"url":"..."}}     │
-├─────────────────────────────────────┤
-│  Show: "📌 Saved to PocketNotes!"   │
-└─────────────────────────────────────┘
-```
+1. Open the **Shortcuts** app → tap **+**
+2. Name it **"PocketNotes"**
+3. Tap **ⓘ** → enable **"Show in Share Sheet"** → Receive: **URLs**
+4. Add these actions:
 
-## Manual Setup (Alternative)
+**Action 1**: Search for **"Get Contents of URL"** and add it:
+   - Tap the URL field → tap **"Shortcut Input"** to use the shared URL... wait, we need to build the API call. This is simpler:
 
-If the Shortcut file doesn't work on your iOS version, you can build it manually:
+**The simpler way**:
 
-1. Open the **Shortcuts** app
-2. Tap **+** to create a new shortcut → name it **"PocketNotes"**
-3. Tap the **ⓘ** → enable **"Show in Share Sheet"** → set Receive to **"URLs"**
-4. Add these actions in order:
-   - **Text** → paste your GitHub PAT → **Set Variable**: `Token`
-   - **Text** → type `your-username/PocketNotes` → **Set Variable**: `Repo`
-   - **Get URLs from** Shortcut Input → **Set Variable**: `ArticleURL`
-   - **Get Contents of URL**:
-     - URL: `https://api.github.com/repos/[Repo]/actions/workflows/process-article.yml/dispatches`
-     - Method: **POST**
-     - Headers: `Authorization: Bearer [Token]`, `Accept: application/vnd.github.v3+json`
-     - Body (JSON): `{"ref": "main", "inputs": {"url": "[ArticleURL]"}}`
-   - **Show Notification**: "📌 Saved to PocketNotes!"
+| Step | Action | Details |
+|------|--------|---------|
+| 1 | **Text** | Type your GitHub PAT (e.g., `github_pat_xxxxx`) |
+| 2 | **Set Variable** | Name: `Token` |
+| 3 | **Get URLs from** | Select: Shortcut Input |
+| 4 | **Set Variable** | Name: `URL` |
+| 5 | **Get Contents of URL** | See below |
+| 6 | **Show Notification** | Title: PocketNotes, Body: 📌 Saved! |
 
-## Sharing This Shortcut
-
-The `PocketNotes.shortcut` file in this folder can be shared with anyone. When they import it, iOS prompts them for their own GitHub token and repo path — your credentials are never included.
+**For Step 5 — Get Contents of URL**:
+- URL: `https://api.github.com/repos/YOUR_USERNAME/PocketNotes/actions/workflows/process-article.yml/dispatches`
+- Method: **POST**
+- Headers:
+  - `Authorization` → `Bearer ` then insert the **Token** variable
+  - `Accept` → `application/vnd.github.v3+json`
+- Request Body: **JSON**
+  - Key `ref` → Value `main`
+  - Key `inputs` → Value (Dictionary) with key `url` → Value: the **URL** variable
 
 ## Troubleshooting
 
 | Issue | Solution |
 |-------|----------|
-| "Untrusted Shortcut" warning | Settings → Shortcuts → Allow Untrusted Shortcuts |
-| Shortcut doesn't appear in Share Sheet | Open Shortcuts → tap PocketNotes → ⓘ → enable "Show in Share Sheet" |
-| "Could not connect" error | Check your GitHub token is correct and hasn't expired |
-| Action doesn't trigger on GitHub | Verify the repo path is correct (username/RepoName format) |
-| No notification | Check Settings → Notifications → Shortcuts is enabled |
+| Web app doesn't auto-paste | Grant clipboard permission when prompted, or paste manually |
+| Share Sheet doesn't show PocketNotes | Open the Shortcut → ⓘ → enable "Show in Share Sheet" |
+| Auth error | Check your PAT hasn't expired; re-enter it in Settings |
+| Action doesn't trigger | Verify the repo path and branch name (`main`) are correct |
