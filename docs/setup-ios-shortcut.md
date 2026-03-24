@@ -1,6 +1,35 @@
-# 📱 Setting Up the iOS Shortcut
+# 📱 Setting Up Mobile Access (iOS)
 
-Save articles from **any app** on your iPhone or iPad using the Share Sheet.
+Save articles from **any app** on your iPhone or iPad.
+
+There are two ways to save on iOS — the **PWA web app** (recommended) and the **iOS Shortcut**.
+
+## Option 1: PWA Web App (Recommended)
+
+The easiest way to save on mobile is the PocketNotes web app, hosted on GitHub Pages.
+
+1. Open your PocketNotes web app URL in Safari (e.g. `https://your-username.github.io/PocketNotes/`)
+2. Tap the **Share** button (📤) → **"Add to Home Screen"**
+3. Open the app from your Home Screen and configure your GitHub token + repo details
+4. To save an article: copy its URL → open PocketNotes → it auto-reads from clipboard → tap Save
+
+### Optional: iOS Shortcut for Share Sheet
+
+Create a simple Shortcut that opens the PWA with a URL pre-filled:
+
+1. Open the **Shortcuts** app
+2. Create a new Shortcut
+3. Add one action: **"Open URLs"**
+4. Set the URL to: `https://your-username.github.io/PocketNotes/#` and toggle **"Show More"** to accept input from Share Sheet
+5. Name it **"PocketNotes"** and enable **"Show in Share Sheet"**
+
+Now you can share from any app → PocketNotes → it opens the PWA with the URL ready to save.
+
+### Copilot Spaces Search
+
+If you configure a Copilot Space URL in the PWA settings, a **"🔍 Search your knowledge base"** button appears alongside the save button — so you can save OR search from the same app.
+
+## Option 2: Direct API Shortcut
 
 ## Prerequisites
 

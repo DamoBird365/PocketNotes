@@ -9,9 +9,13 @@ PocketNotes lets you save articles, blog posts, and links from any device with a
 - **One-click save** from Edge, Chrome, or any iOS app
 - **AI-powered summaries** — automatically extracts key points
 - **Smart tagging** — auto-detects topics in kebab-case (`power-platform`, `ai`, `career`)
-- **Cross-device** — Chromium extension for desktop, iOS Shortcut for mobile
+- **Content type detection** — automatically classifies as article, blog-post, video, documentation, social-post, etc.
+- **Author extraction** — captures the author/creator when available
+- **YouTube support** — extracts video title, channel, and description via oEmbed
+- **Microsoft detection** — auto-tags `microsoft-official` for *.microsoft.com domains
+- **Cross-device** — Chromium extension for desktop, PWA web app + iOS Shortcut for mobile
 - **Zero servers** — runs entirely on GitHub Actions (free tier)
-- **Searchable** — markdown files with YAML frontmatter, works with GitHub search, Copilot, and Copilot Spaces
+- **Searchable** — markdown files with YAML frontmatter, works with GitHub search, Copilot, and [Copilot Spaces](docs/copilot-spaces.md)
 - **Shareable** — template repo that anyone can fork for their own knowledge base
 
 ## 🚀 Quick Start
@@ -54,7 +58,7 @@ See [docs/setup-ios-shortcut.md](docs/setup-ios-shortcut.md) for detailed instru
 ## 📁 How It Works
 
 ```
-You see an article → Click extension button or iOS Share Sheet
+You see an article → Click extension button, PWA, or iOS Share Sheet
                            │
                            ▼
                   GitHub API (workflow_dispatch)
@@ -62,9 +66,10 @@ You see an article → Click extension button or iOS Share Sheet
                            ▼
                   GitHub Action fires:
                   1. Fetches article content
-                  2. AI generates summary + tags
-                  3. Creates markdown file
-                  4. Commits to your repo
+                  2. Detects content type + platform + author
+                  3. AI generates summary + tags
+                  4. Creates markdown file
+                  5. Commits to your repo
                            │
                            ▼
               /articles/2026-03-24-article-title.md
@@ -79,7 +84,9 @@ Each article is saved as a markdown file with YAML frontmatter:
 title: "Building Copilot Agents with Power Platform"
 url: "https://example.com/article"
 date_saved: "2026-03-24T15:30:00Z"
+content_type: "blog-post"
 source_platform: "linkedin"
+author: "Jane Smith"
 summary: "A deep dive into creating custom Copilot agents..."
 tags:
   - power-platform
@@ -111,17 +118,25 @@ ai:
 article:
   include_key_points: true
   include_full_summary: true
+  filename_format: "date-title"  # date-title or title-only
+
+security:
+  max_daily_saves: 50            # Rate limit (0 = unlimited)
+  require_https: true            # Only allow HTTPS URLs
+  blocked_patterns: []           # Regex patterns to block
 ```
 
 See [docs/custom-ai-provider.md](docs/custom-ai-provider.md) for using your own AI provider.
 
 ## 🔒 Security
 
-- Your GitHub PAT is stored **locally on your device** (browser extension storage / iOS Shortcut)
+- Your GitHub PAT is stored **locally on your device** (browser extension storage / PWA localStorage)
 - The PAT is scoped to **a single repo** with minimal permissions
 - `workflow_dispatch` requires authentication — nobody can trigger it without your token
 - The shared template ships with **zero credentials**
 - URL validation in the Action rejects suspicious inputs
+- Configurable HTTPS-only mode and URL blocklist patterns
+- Optional daily save rate limit
 
 ## 🔍 Searching Your Knowledge Base
 

@@ -15,6 +15,7 @@ PocketNotes is an open-source browser extension that saves article URLs to your 
 ### Data the extension stores locally:
 - **GitHub Personal Access Token** — stored in your browser's local extension storage (`chrome.storage.local`). This never leaves your device except when making authenticated requests to the GitHub API.
 - **Repository owner and name** — stored locally to know which repo to send articles to.
+- **Copilot Space URL** (optional) — stored locally for the "Search your knowledge base" link. This URL is never sent to any server.
 
 ## What Data is NOT Collected
 
@@ -27,12 +28,14 @@ PocketNotes is an open-source browser extension that saves article URLs to your 
 
 ## Where Data is Sent
 
-Data is sent to **one destination only**: the GitHub REST API (`api.github.com`), specifically to trigger a GitHub Actions workflow dispatch on your own repository. No other servers, services, or third parties receive any data.
+When you save an article, data is sent to **one destination only**: the GitHub REST API (`api.github.com`), specifically to trigger a GitHub Actions workflow dispatch on your own repository. No other servers, services, or third parties receive any data from the extension.
+
+**Note**: Once triggered, the GitHub Action fetches the article content and sends it to the configured AI provider (GitHub Models by default, or OpenAI/Azure OpenAI if configured) for summarisation. This processing happens server-side within GitHub Actions, not in the browser extension.
 
 ## Data Storage
 
-All settings (token, repo details) are stored locally in your browser using `chrome.storage.local`. This data is:
-- Encrypted by the browser
+All settings (token, repo details, optional Copilot Space URL) are stored locally in your browser using `chrome.storage.local`. This data is:
+- Sandboxed to the extension
 - Not synced across devices
 - Deleted when you uninstall the extension
 
@@ -48,7 +51,7 @@ The extension requests **no other permissions** — no access to browsing histor
 ## Open Source
 
 PocketNotes is fully open source. You can inspect every line of code to verify these claims:
-- [Extension source code](https://github.com/YOUR_USERNAME/PocketNotes/tree/main/extension)
+- [Extension source code](https://github.com/DamoBird365/PocketNotes/tree/main/extension)
 
 ## Changes to This Policy
 
@@ -56,4 +59,4 @@ Any changes to this privacy policy will be reflected in this document with an up
 
 ## Contact
 
-If you have questions about this privacy policy, please [open an issue](https://github.com/YOUR_USERNAME/PocketNotes/issues) on the GitHub repository.
+If you have questions about this privacy policy, please [open an issue](https://github.com/DamoBird365/PocketNotes/issues) on the GitHub repository.

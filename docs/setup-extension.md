@@ -54,6 +54,17 @@ PocketNotes works in **both Microsoft Edge and Google Chrome** using the same ex
 4. Click **"💾 Save Settings"**
 5. Click **"🔍 Test Connection"** to verify everything works
 
+### Optional: Copilot Spaces Integration
+
+If you've set up a [Copilot Space](copilot-spaces.md) for your articles:
+
+1. Open extension **Settings**
+2. Scroll to the **Copilot Spaces** section
+3. Paste your Space URL (e.g. `https://github.com/copilot/spaces/your-space-id`)
+4. Click **Save Settings**
+
+This adds a **"🔍 Search your knowledge base"** button to the extension popup, so you can either save a new article OR jump straight to conversational search over your saved articles.
+
 ## Using the Extension
 
 1. Navigate to any article or blog post
