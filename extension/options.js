@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const tokenEl = document.getElementById("githubToken");
   const ownerEl = document.getElementById("repoOwner");
   const nameEl = document.getElementById("repoName");
+  const spaceUrlEl = document.getElementById("copilotSpaceUrl");
   const saveBtn = document.getElementById("saveBtn");
   const testBtn = document.getElementById("testBtn");
   const statusEl = document.getElementById("status");
@@ -15,11 +16,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     "githubToken",
     "repoOwner",
     "repoName",
+    "copilotSpaceUrl",
   ]);
 
   if (settings.githubToken) tokenEl.value = settings.githubToken;
   if (settings.repoOwner) ownerEl.value = settings.repoOwner;
   if (settings.repoName) nameEl.value = settings.repoName;
+  if (settings.copilotSpaceUrl) spaceUrlEl.value = settings.copilotSpaceUrl;
 
   // Save settings
   saveBtn.addEventListener("click", async () => {
@@ -36,6 +39,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       githubToken: token,
       repoOwner: owner,
       repoName: name,
+      copilotSpaceUrl: spaceUrlEl.value.trim(),
     });
 
     showStatus("success", "✅ Settings saved!");

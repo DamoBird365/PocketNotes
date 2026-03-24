@@ -224,6 +224,11 @@
         <label>Repository Name</label>
         <input type="text" id="setupRepo" value="PocketNotes" autocomplete="off">
       </div>
+      <div class="field">
+        <label>Copilot Space URL (optional)</label>
+        <div class="hint">For conversational search over your saved articles</div>
+        <input type="url" id="setupSpaceUrl" placeholder="https://github.com/copilot/spaces/..." autocomplete="off">
+      </div>
       <button class="btn btn-primary" id="setupSaveBtn">💾 Save & Continue</button>
       <div class="toast" id="setupToast"></div>
     </div>
@@ -247,6 +252,7 @@
       </div>
 
       <button class="btn btn-primary" id="saveBtn" disabled>📌 Save to PocketNotes</button>
+      <a href="#" class="btn btn-secondary" id="spacesLink" target="_blank" style="display: none; text-decoration: none; text-align: center;">🔍 Search your knowledge base</a>
       <div class="toast" id="saveToast"></div>
 
       <button class="btn-link" id="settingsBtn">⚙️ Settings</button>
@@ -299,22 +305,24 @@
     }
 
     // ── Init ──
+    function initSaveScreen() {
+      const shared = getSharedUrl() || sessionStorage.getItem("pn_pending_url") || "";
+      sessionStorage.removeItem("pn_pending_url");
+      if (shared) {
+        document.getElementById("articleUrl").value = shared;
+        updateSaveButton();
+      }
+      if (!shared) tryClipboard();
+    }
+
     function init() {
       if (!settings) {
         showScreen("setupScreen");
-        // If there's a shared URL, stash it so it's available after setup
         const shared = getSharedUrl();
         if (shared) sessionStorage.setItem("pn_pending_url", shared);
       } else {
         showScreen("saveScreen");
-        const shared = getSharedUrl() || sessionStorage.getItem("pn_pending_url") || "";
-        sessionStorage.removeItem("pn_pending_url");
-        if (shared) {
-          document.getElementById("articleUrl").value = shared;
-          updateSaveButton();
-        }
-        // Also try clipboard auto-read on open
-        if (!shared) tryClipboard();
+        initSaveScreen();
       }
     }
 
@@ -350,9 +358,12 @@
         });
         if (!res.ok) throw new Error("Cannot access repo");
 
-        saveSettings({ token, owner, repo });
+        saveSettings({ token, owner, repo, spaceUrl: document.getElementById("setupSpaceUrl").value.trim() });
         showToast(toast, "success", "✅ Connected!");
-        setTimeout(() => showScreen("saveScreen"), 800);
+        setTimeout(() => {
+          showScreen("saveScreen");
+          initSaveScreen();
+        }, 800);
       } catch (e) {
         showToast(toast, "error", `❌ ${e.message}. Check your token and repo.`);
       }
@@ -423,6 +434,14 @@
           saveBtn.innerHTML = "✅ Saved!";
           urlInput.value = "";
           document.getElementById("articleNote").value = "";
+
+          // Show Copilot Spaces link if configured
+          if (settings.spaceUrl) {
+            const spacesLink = document.getElementById("spacesLink");
+            spacesLink.href = settings.spaceUrl;
+            spacesLink.style.display = "flex";
+          }
+
           // Clear query string if present
           if (window.location.search) {
             history.replaceState(null, "", window.location.pathname);
@@ -431,7 +450,7 @@
             saveBtn.innerHTML = "📌 Save to PocketNotes";
             saveBtn.disabled = true;
             saveToast.className = "toast";
-          }, 3000);
+          }, 5000);
         } else if (res.status === 401 || res.status === 403) {
           showToast(saveToast, "error", "❌ Auth failed. Check your token in Settings.");
           resetSaveBtn();
@@ -456,6 +475,7 @@
         document.getElementById("setupToken").value = settings.token;
         document.getElementById("setupOwner").value = settings.owner;
         document.getElementById("setupRepo").value = settings.repo;
+        document.getElementById("setupSpaceUrl").value = settings.spaceUrl || "";
       }
       showScreen("setupScreen");
     });

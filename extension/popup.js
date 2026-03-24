@@ -23,6 +23,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     "githubToken",
     "repoOwner",
     "repoName",
+    "copilotSpaceUrl",
   ]);
 
   const isConfigured =
@@ -77,7 +78,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (response.status === 204) {
         showStatus("success", "✅ Saved! The article is being processed.");
         saveBtnText.textContent = "✅ Saved!";
-        setTimeout(() => window.close(), 2000);
+
+        // Show Copilot Spaces link if configured
+        if (settings.copilotSpaceUrl) {
+          const spacesLink = document.getElementById("spacesLink");
+          spacesLink.href = settings.copilotSpaceUrl;
+          spacesLink.style.display = "block";
+        }
+
+        setTimeout(() => window.close(), 4000);
       } else if (response.status === 404) {
         showStatus(
           "error",
