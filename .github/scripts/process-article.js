@@ -279,6 +279,47 @@ function detectPlatform(url) {
   return "web";
 }
 
+function detectContentType(url, sourcePlatform) {
+  const urlLower = url.toLowerCase();
+  const pathname = new URL(url).pathname.toLowerCase();
+
+  // Platform-specific content types
+  const platformTypes = {
+    "youtube": "video",
+    "twitter": "social-post",
+    "linkedin": pathname.includes("/pulse/") || pathname.includes("/article/")
+      ? "article" : pathname.includes("/posts/") ? "social-post" : "social-post",
+    "reddit": "discussion",
+    "stack-overflow": "q-and-a",
+    "github": pathname.includes("/issues/") ? "issue"
+      : pathname.includes("/pull/") ? "pull-request"
+      : pathname.includes("/discussions/") ? "discussion"
+      : "repository",
+    "medium": "article",
+    "dev-to": "article",
+    "hashnode": "article",
+    "microsoft-learn": "documentation",
+    "microsoft-tech-community": "article",
+    "power-automate": "documentation",
+    "power-apps": "documentation",
+  };
+
+  if (platformTypes[sourcePlatform]) {
+    return platformTypes[sourcePlatform];
+  }
+
+  // URL pattern heuristics for generic sites
+  if (urlLower.includes("/blog/") || urlLower.includes("/post/")) return "blog-post";
+  if (urlLower.includes("/docs/") || urlLower.includes("/documentation/")) return "documentation";
+  if (urlLower.includes("/tutorial") || urlLower.includes("/how-to")) return "tutorial";
+  if (urlLower.includes("/podcast") || urlLower.includes("/episode")) return "podcast";
+  if (urlLower.includes("/video") || urlLower.includes("/watch")) return "video";
+  if (urlLower.includes("/news/") || urlLower.includes("/press/")) return "news";
+  if (urlLower.includes("/wiki/")) return "wiki";
+
+  return "article";
+}
+
 // ── AI Summarisation ───────────────────────────────────────────────────────
 
 async function summariseWithAI(article, config) {
@@ -430,10 +471,12 @@ async function callAzureOpenAI(prompt, model) {
 
 function generateMarkdown(article, aiResult, config, note) {
   const now = new Date().toISOString();
+  const contentType = detectContentType(article.url, article.sourcePlatform);
   const frontmatter = {
     title: article.title,
     url: article.url,
     date_saved: now,
+    content_type: contentType,
     source_platform: article.sourcePlatform,
     summary: aiResult.summary,
     tags: aiResult.tags,
