@@ -88,10 +88,15 @@ function checkRateLimit(config) {
 async function fetchArticle(url) {
   console.log(`📥 Fetching: ${url}`);
 
+  const sourcePlatform = detectPlatform(url);
+
+  // Use a browser-like UA for sites that block bots (YouTube, Twitter, etc.)
+  const userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+
   const response = await fetch(url, {
     headers: {
-      "User-Agent":
-        "Mozilla/5.0 (compatible; PocketNotes/1.0; +https://github.com/pocketnotes)",
+      "User-Agent": userAgent,
+      "Accept-Language": "en-US,en;q=0.9",
       Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     },
     redirect: "follow",
@@ -104,7 +109,6 @@ async function fetchArticle(url) {
 
   const html = await response.text();
   const dom = new JSDOM(html, { url });
-  const sourcePlatform = detectPlatform(url);
 
   // Platform-specific extraction for JS-heavy sites
   if (sourcePlatform === "youtube") {
@@ -147,38 +151,49 @@ function getMetaContent(dom, name) {
 }
 
 function extractYouTube(dom, url, html) {
-  const title = getMetaContent(dom, "og:title") || getMetaContent(dom, "title") || "YouTube Video";
+  const title = getMetaContent(dom, "og:title") || getMetaContent(dom, "title") || "";
   const description = getMetaContent(dom, "og:description") || getMetaContent(dom, "description") || "";
   const channel = getMetaContent(dom, "og:site_name") || "";
   const keywords = getMetaContent(dom, "keywords") || "";
 
+  console.log(`🎬 Meta og:title: "${title}"`);
+  console.log(`🎬 Meta og:description: "${description.slice(0, 80)}..."`);
+
   // Try to extract richer data from ytInitialPlayerResponse in page source
   let fullDescription = description;
   let channelName = channel;
+  let videoTitle = title;
   try {
     const playerMatch = html.match(/ytInitialPlayerResponse\s*=\s*(\{.+?\});\s*(?:var|<\/script)/s);
     if (playerMatch) {
       const playerData = JSON.parse(playerMatch[1]);
       const videoDetails = playerData?.videoDetails;
       if (videoDetails) {
+        videoTitle = videoDetails.title || videoTitle;
         fullDescription = videoDetails.shortDescription || fullDescription;
         channelName = videoDetails.author || channelName;
+        console.log(`🎬 ytPlayerResponse: "${videoTitle}" by ${channelName}`);
       }
     }
-  } catch { /* JSON parse failed, use meta tags */ }
+  } catch (e) {
+    console.warn(`⚠️  Could not parse ytInitialPlayerResponse: ${e.message}`);
+  }
+
+  // Use the best title available
+  const finalTitle = videoTitle || title || "YouTube Video";
 
   // Build rich text content for the AI
   const textContent = [
-    `Video Title: ${title}`,
+    `Video Title: ${finalTitle}`,
     channelName ? `Channel: ${channelName}` : "",
     `Description: ${fullDescription}`,
     keywords ? `Keywords: ${keywords}` : "",
   ].filter(Boolean).join("\n\n");
 
-  console.log(`🎬 YouTube: "${title}" by ${channelName || "unknown"}`);
+  console.log(`🎬 YouTube: "${finalTitle}" by ${channelName || "unknown"}`);
 
   return {
-    title,
+    title: finalTitle,
     textContent,
     excerpt: fullDescription.slice(0, 300),
     sourcePlatform: "youtube",
