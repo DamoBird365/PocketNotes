@@ -36,6 +36,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     saveBtn.disabled = false;
   }
 
+  // Show Copilot Spaces link if configured (always visible, not just after save)
+  if (settings.copilotSpaceUrl) {
+    const spacesLink = document.getElementById("spacesLink");
+    spacesLink.href = settings.copilotSpaceUrl;
+    spacesLink.style.display = "block";
+  }
+
   // Open settings
   openSettingsLink?.addEventListener("click", (e) => {
     e.preventDefault();
@@ -78,15 +85,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (response.status === 204) {
         showStatus("success", "✅ Saved! The article is being processed.");
         saveBtnText.textContent = "✅ Saved!";
-
-        // Show Copilot Spaces link if configured
-        if (settings.copilotSpaceUrl) {
-          const spacesLink = document.getElementById("spacesLink");
-          spacesLink.href = settings.copilotSpaceUrl;
-          spacesLink.style.display = "block";
-        }
-
-        setTimeout(() => window.close(), 4000);
+        setTimeout(() => window.close(), 3000);
       } else if (response.status === 404) {
         showStatus(
           "error",

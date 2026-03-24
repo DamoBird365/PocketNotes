@@ -252,7 +252,7 @@
       </div>
 
       <button class="btn btn-primary" id="saveBtn" disabled>📌 Save to PocketNotes</button>
-      <a href="#" class="btn btn-secondary" id="spacesLink" target="_blank" style="display: none; text-decoration: none; text-align: center;">🔍 Search your knowledge base</a>
+      <a href="#" class="btn btn-secondary" id="spacesLink" target="_blank" style="display: none; text-decoration: none; text-align: center; color: var(--link);">🔍 Search your knowledge base</a>
       <div class="toast" id="saveToast"></div>
 
       <button class="btn-link" id="settingsBtn">⚙️ Settings</button>
@@ -313,6 +313,13 @@
         updateSaveButton();
       }
       if (!shared) tryClipboard();
+
+      // Show Copilot Spaces link if configured
+      if (settings?.spaceUrl) {
+        const spacesLink = document.getElementById("spacesLink");
+        spacesLink.href = settings.spaceUrl;
+        spacesLink.style.display = "flex";
+      }
     }
 
     function init() {
@@ -434,13 +441,6 @@
           saveBtn.innerHTML = "✅ Saved!";
           urlInput.value = "";
           document.getElementById("articleNote").value = "";
-
-          // Show Copilot Spaces link if configured
-          if (settings.spaceUrl) {
-            const spacesLink = document.getElementById("spacesLink");
-            spacesLink.href = settings.spaceUrl;
-            spacesLink.style.display = "flex";
-          }
 
           // Clear query string if present
           if (window.location.search) {
