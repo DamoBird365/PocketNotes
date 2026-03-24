@@ -281,24 +281,53 @@
       document.getElementById(id).classList.add("active");
     }
 
-    // ── Check for URL in query string (from iOS Shortcut) ──
+    // ── Check for shared URL (from iOS Shortcut or direct link) ──
     function getSharedUrl() {
+      // Method 1: Hash fragment (most reliable from iOS Shortcuts)
+      // e.g. https://damobird365.github.io/PocketNotes/#https://example.com/article
+      const hash = window.location.hash.slice(1);
+      if (hash && (hash.startsWith("http://") || hash.startsWith("https://"))) {
+        return decodeURIComponent(hash);
+      }
+      // Method 2: Query parameter (fallback)
+      // e.g. ?url=https://example.com/article
+      const match = window.location.search.match(/[?&]url=(.+)/);
+      if (match) return decodeURIComponent(match[1]);
+      // Method 3: text parameter (from Android share_target)
       const params = new URLSearchParams(window.location.search);
-      return params.get("url") || "";
+      return params.get("text") || "";
     }
 
     // ── Init ──
     function init() {
       if (!settings) {
         showScreen("setupScreen");
+        // If there's a shared URL, stash it so it's available after setup
+        const shared = getSharedUrl();
+        if (shared) sessionStorage.setItem("pn_pending_url", shared);
       } else {
         showScreen("saveScreen");
-        const shared = getSharedUrl();
+        const shared = getSharedUrl() || sessionStorage.getItem("pn_pending_url") || "";
+        sessionStorage.removeItem("pn_pending_url");
         if (shared) {
           document.getElementById("articleUrl").value = shared;
           updateSaveButton();
         }
+        // Also try clipboard auto-read on open
+        if (!shared) tryClipboard();
       }
+    }
+
+    async function tryClipboard() {
+      try {
+        const text = await navigator.clipboard.readText();
+        if (text && (text.startsWith("http://") || text.startsWith("https://"))) {
+          document.getElementById("articleUrl").value = text;
+          updateSaveButton();
+          document.getElementById("pasteArea").classList.add("active");
+          setTimeout(() => document.getElementById("pasteArea").classList.remove("active"), 1500);
+        }
+      } catch { /* clipboard not available */ }
     }
 
     // ── Setup Screen ──
