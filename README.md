@@ -135,6 +135,8 @@ See [docs/custom-ai-provider.md](docs/custom-ai-provider.md) for using your own 
 - [Setting up the browser extension](docs/setup-extension.md)
 - [Setting up the iOS Shortcut](docs/setup-ios-shortcut.md)
 - [Using a custom AI provider](docs/custom-ai-provider.md)
+- [Publishing to extension stores](docs/publishing-extension.md)
+- [Privacy policy](docs/privacy-policy.md)
 - [Contributing](docs/contributing.md)
 
 ## 🤝 Contributing
