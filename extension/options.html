@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PocketNotes Settings</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0d1117;
+      color: #e6edf3;
+      padding: 40px;
+      max-width: 560px;
+      margin: 0 auto;
+    }
+
+    .header {
+      margin-bottom: 32px;
+    }
+
+    .header h1 {
+      font-size: 24px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .header p {
+      color: #8b949e;
+      margin-top: 8px;
+      font-size: 14px;
+    }
+
+    .section {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .section h2 {
+      font-size: 16px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #30363d;
+    }
+
+    .field {
+      margin-bottom: 16px;
+    }
+
+    .field:last-child {
+      margin-bottom: 0;
+    }
+
+    .field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .field .hint {
+      font-size: 11px;
+      color: #8b949e;
+      margin-bottom: 6px;
+    }
+
+    .field input {
+      width: 100%;
+      padding: 8px 12px;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      color: #e6edf3;
+      font-size: 14px;
+      font-family: 'SF Mono', 'Cascadia Code', monospace;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .field input:focus {
+      border-color: #58a6ff;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: #238636;
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background: #2ea043;
+    }
+
+    .btn-secondary {
+      background: #21262d;
+      color: #c9d1d9;
+      margin-left: 8px;
+    }
+
+    .btn-secondary:hover {
+      background: #30363d;
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status {
+      margin-top: 16px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      display: none;
+    }
+
+    .status.success {
+      display: block;
+      background: #0d2818;
+      color: #3fb950;
+      border: 1px solid #238636;
+    }
+
+    .status.error {
+      display: block;
+      background: #2d1114;
+      color: #f85149;
+      border: 1px solid #da3633;
+    }
+
+    .info-box {
+      background: #0d1f3c;
+      border: 1px solid #1f6feb;
+      border-radius: 6px;
+      padding: 12px;
+      font-size: 12px;
+      color: #a5d6ff;
+      line-height: 1.5;
+    }
+
+    .info-box a {
+      color: #58a6ff;
+      text-decoration: none;
+    }
+
+    .info-box a:hover {
+      text-decoration: underline;
+    }
+
+    code {
+      background: #0d1117;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-family: 'SF Mono', 'Cascadia Code', monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>📌 PocketNotes Settings</h1>
+    <p>Configure your GitHub connection to start saving articles.</p>
+  </div>
+
+  <div class="section">
+    <h2>🔑 GitHub Authentication</h2>
+
+    <div class="info-box" style="margin-bottom: 16px;">
+      Create a <a href="https://github.com/settings/tokens?type=beta" target="_blank">fine-grained personal access token</a> with:<br>
+      • <strong>Repository access</strong>: Only your PocketNotes repo<br>
+      • <strong>Permissions</strong>: Actions (Read &amp; Write) + Contents (Read &amp; Write)
+    </div>
+
+    <div class="field">
+      <label>GitHub Personal Access Token</label>
+      <div class="hint">Stored locally in your browser — never sent anywhere except GitHub's API</div>
+      <input type="password" id="githubToken" placeholder="github_pat_xxxxx">
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>📦 Repository</h2>
+
+    <div class="field">
+      <label>Repository Owner</label>
+      <div class="hint">Your GitHub username or organisation</div>
+      <input type="text" id="repoOwner" placeholder="your-username">
+    </div>
+
+    <div class="field">
+      <label>Repository Name</label>
+      <div class="hint">The name of your PocketNotes repo</div>
+      <input type="text" id="repoName" placeholder="PocketNotes" value="PocketNotes">
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-primary" id="saveBtn">💾 Save Settings</button>
+    <button class="btn btn-secondary" id="testBtn">🔍 Test Connection</button>
+  </div>
+
+  <div class="status" id="status"></div>
+
+  <script src="options.js"></script>
+</body>
+</html>

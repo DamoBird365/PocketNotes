@@ -1,0 +1,62 @@
+name: Process Saved Article
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: 'URL of the article to save'
+        required: true
+        type: string
+      note:
+        description: 'Optional personal note about the article'
+        required: false
+        type: string
+        default: ''
+
+# Ensure only one article is processed at a time to avoid git conflicts
+concurrency:
+  group: process-article
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  models: read
+
+jobs:
+  process-article:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        working-directory: .github/scripts
+        run: npm install --no-fund --no-audit
+
+      - name: Process article
+        working-directory: .github/scripts
+        env:
+          ARTICLE_URL: ${{ inputs.url }}
+          ARTICLE_NOTE: ${{ inputs.note }}
+          AI_PROVIDER: ${{ vars.AI_PROVIDER || '' }}
+          AI_MODEL: ${{ vars.AI_MODEL || '' }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
+          AZURE_OPENAI_KEY: ${{ secrets.AZURE_OPENAI_KEY }}
+        run: node process-article.js
+
+      - name: Commit and push
+        run: |
+          git config user.name "PocketNotes Bot"
+          git config user.email "pocketnotes[bot]@users.noreply.github.com"
+          git add articles/
+          git diff --cached --quiet && echo "No changes to commit" && exit 0
+          TITLE=$(head -n 5 articles/*.md 2>/dev/null | grep "^title:" | tail -1 | sed 's/title: "//;s/"$//')
+          git commit -m "📌 Saved: ${TITLE:-New article}" -m "URL: ${{ inputs.url }}"
+          git push

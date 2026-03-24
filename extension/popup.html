@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PocketNotes</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 360px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0d1117;
+      color: #e6edf3;
+      padding: 16px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #30363d;
+    }
+
+    .header h1 {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .header .icon {
+      font-size: 20px;
+    }
+
+    .field {
+      margin-bottom: 12px;
+    }
+
+    .field label {
+      display: block;
+      font-size: 12px;
+      color: #8b949e;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .field input,
+    .field textarea {
+      width: 100%;
+      padding: 8px 10px;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      color: #e6edf3;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .field input:focus,
+    .field textarea:focus {
+      border-color: #58a6ff;
+    }
+
+    .field input[readonly] {
+      color: #8b949e;
+      cursor: default;
+    }
+
+    .field textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    .url-display {
+      font-size: 12px;
+      color: #58a6ff;
+      word-break: break-all;
+      background: #161b22;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid #30363d;
+      max-height: 60px;
+      overflow-y: auto;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-primary {
+      background: #238636;
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background: #2ea043;
+    }
+
+    .btn-primary:disabled {
+      background: #21262d;
+      color: #484f58;
+      cursor: not-allowed;
+    }
+
+    .status {
+      margin-top: 12px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      display: none;
+    }
+
+    .status.success {
+      display: block;
+      background: #0d2818;
+      color: #3fb950;
+      border: 1px solid #238636;
+    }
+
+    .status.error {
+      display: block;
+      background: #2d1114;
+      color: #f85149;
+      border: 1px solid #da3633;
+    }
+
+    .status.loading {
+      display: block;
+      background: #1a1e24;
+      color: #d29922;
+      border: 1px solid #9e6a03;
+    }
+
+    .setup-warning {
+      background: #2d1f00;
+      color: #d29922;
+      border: 1px solid #9e6a03;
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      margin-bottom: 12px;
+    }
+
+    .setup-warning a {
+      color: #58a6ff;
+      text-decoration: none;
+    }
+
+    .settings-link {
+      display: block;
+      text-align: center;
+      margin-top: 12px;
+      font-size: 11px;
+      color: #8b949e;
+      text-decoration: none;
+    }
+
+    .settings-link:hover {
+      color: #58a6ff;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <span class="icon">📌</span>
+    <h1>PocketNotes</h1>
+  </div>
+
+  <div id="setupWarning" class="setup-warning" style="display: none;">
+    ⚠️ Not configured yet. <a href="#" id="openSettings">Open Settings</a> to add your GitHub token and repo details.
+  </div>
+
+  <div class="field">
+    <label>Page Title</label>
+    <input type="text" id="pageTitle" readonly>
+  </div>
+
+  <div class="field">
+    <label>URL</label>
+    <div class="url-display" id="pageUrl"></div>
+  </div>
+
+  <div class="field">
+    <label>Note (optional)</label>
+    <textarea id="note" placeholder="Add a personal note about this article..."></textarea>
+  </div>
+
+  <button class="btn btn-primary" id="saveBtn" disabled>
+    <span id="saveBtnText">📌 Save to PocketNotes</span>
+  </button>
+
+  <div class="status" id="status"></div>
+
+  <a href="#" class="settings-link" id="settingsLink">⚙️ Settings</a>
+
+  <script src="popup.js"></script>
+</body>
+</html>

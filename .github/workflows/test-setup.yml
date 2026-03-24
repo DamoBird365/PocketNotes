@@ -1,0 +1,101 @@
+name: Test PocketNotes Setup
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/scripts/**'
+      - '.github/workflows/process-article.yml'
+
+permissions:
+  contents: write
+  models: read
+
+jobs:
+  test-setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        working-directory: .github/scripts
+        run: npm install --no-fund --no-audit
+
+      - name: Validate config.yml
+        run: |
+          echo "📋 Checking config.yml exists and is valid YAML..."
+          if [ ! -f config.yml ]; then
+            echo "❌ config.yml not found!"
+            exit 1
+          fi
+          # Basic YAML validation using Node
+          node -e "
+            const { readFileSync } = require('fs');
+            try {
+              const yaml = require('./.github/scripts/node_modules/yaml');
+              const config = yaml.parse(readFileSync('config.yml', 'utf-8'));
+              console.log('✅ config.yml is valid');
+              console.log('   AI Provider:', config?.ai?.provider || 'not set');
+              console.log('   AI Model:', config?.ai?.model || 'not set');
+            } catch(e) {
+              console.error('❌ Invalid YAML:', e.message);
+              process.exit(1);
+            }
+          "
+
+      - name: Validate extension manifest
+        run: |
+          echo "🌐 Checking extension manifest.json..."
+          node -e "
+            const manifest = require('./extension/manifest.json');
+            const required = ['manifest_version', 'name', 'version', 'permissions', 'action'];
+            const missing = required.filter(k => !(k in manifest));
+            if (missing.length > 0) {
+              console.error('❌ Missing required fields:', missing.join(', '));
+              process.exit(1);
+            }
+            if (manifest.manifest_version !== 3) {
+              console.error('❌ Must be Manifest V3');
+              process.exit(1);
+            }
+            console.log('✅ Extension manifest is valid');
+            console.log('   Name:', manifest.name);
+            console.log('   Version:', manifest.version);
+            console.log('   Manifest version:', manifest.manifest_version);
+          "
+
+      - name: Validate articles directory
+        run: |
+          echo "📁 Checking articles directory..."
+          if [ ! -d articles ]; then
+            echo "❌ articles/ directory not found!"
+            exit 1
+          fi
+          echo "✅ articles/ directory exists"
+          echo "   Files: $(ls articles/ | wc -l)"
+
+      - name: Check process script syntax
+        working-directory: .github/scripts
+        run: |
+          echo "🔍 Checking process-article.js syntax..."
+          node --check process-article.js
+          echo "✅ Script syntax is valid"
+
+      - name: Summary
+        run: |
+          echo ""
+          echo "══════════════════════════════════════"
+          echo "  ✅ PocketNotes setup is valid!"
+          echo "══════════════════════════════════════"
+          echo ""
+          echo "  Next steps:"
+          echo "  1. Create a fine-grained GitHub PAT"
+          echo "  2. Install the browser extension"
+          echo "  3. Save your first article!"
+          echo ""

@@ -1,0 +1,37 @@
+# PocketNotes Configuration
+# Edit this file to customise how PocketNotes processes your saved articles.
+
+ai:
+  # AI provider for summarisation and tagging.
+  # Options: "github-models" (free, default), "openai", "azure-openai"
+  provider: "github-models"
+
+  # Model to use for summarisation.
+  # For github-models: "gpt-4o-mini" (recommended), "gpt-4o"
+  # For openai: "gpt-4o-mini", "gpt-4o", "gpt-3.5-turbo"
+  # For azure-openai: your deployed model name
+  model: "gpt-4o-mini"
+
+  # For OpenAI: set the OPENAI_API_KEY repository secret
+  # For Azure OpenAI: set AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_KEY repository secrets
+
+article:
+  # Include a bullet-point list of key points from the article
+  include_key_points: true
+
+  # Include a detailed AI-generated summary
+  include_full_summary: true
+
+  # Filename format for saved articles
+  # Available placeholders: {date}, {slug}
+  filename_format: "{date}-{slug}"
+
+security:
+  # Maximum articles that can be saved per day (protection against abuse)
+  max_daily_saves: 50
+
+  # Reject URLs that don't start with http:// or https://
+  require_https: false
+
+  # Blocked URL patterns (regex). Add patterns to reject specific domains.
+  blocked_patterns: []

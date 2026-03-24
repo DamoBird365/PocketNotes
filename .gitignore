@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+
+# Extension build artifacts
+extension/*.crx
+extension/*.pem
+extension/*.zip
+
+# Environment files
+.env
+.env.local
