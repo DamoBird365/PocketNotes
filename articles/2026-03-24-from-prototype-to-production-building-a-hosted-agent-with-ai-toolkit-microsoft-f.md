@@ -3,6 +3,7 @@ title: "From Prototype to Production: Building a Hosted Agent with AI Toolkit &
   Microsoft Foundry"
 url: https://techcommunity.microsoft.com/blog/azuredevcommunityblog/from-prototype-to-production-building-a-hosted-agent-with-ai-toolkit--microsoft-/4501969
 date_saved: 2026-03-24T17:12:33.847Z
+content_type: article
 source_platform: microsoft-tech-community
 summary: The article outlines the process of building and deploying a hosted AI
   agent using AI Toolkit in Visual Studio Code and Microsoft Foundry,
@@ -12,6 +13,7 @@ summary: The article outlines the process of building and deploying a hosted AI
   and operationalizing the agent with built-in evaluation and monitoring
   features.
 tags:
+  - microsoft-official
   - ai-toolkit
   - microsoft-foundry
   - tutorial

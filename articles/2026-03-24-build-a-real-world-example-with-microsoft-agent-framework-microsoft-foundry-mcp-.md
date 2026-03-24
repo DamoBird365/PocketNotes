@@ -3,7 +3,8 @@ title: Build a real-world example with Microsoft Agent Framework, Microsoft
   Foundry, MCP and Aspire - Microsoft for Developers
 url: https://developer.microsoft.com/blog/build-a-real-world-example-with-microsoft-agent-framework-microsoft-foundry-mcp-and-aspire
 date_saved: 2026-03-24T17:04:34.528Z
-source_platform: web
+content_type: blog-post
+source_platform: microsoft-developer
 summary: The article introduces the open-source Interview Coach sample
   application that demonstrates the integration of Microsoft Agent Framework,
   Microsoft Foundry, Model Context Protocol (MCP), and Aspire in building AI
@@ -11,6 +12,7 @@ summary: The article introduces the open-source Interview Coach sample
   application, which simulates a job interview process using specialized agents
   for different interview stages.
 tags:
+  - microsoft-official
   - microsoft-agent-framework
   - microsoft-foundry
   - model-context-protocol

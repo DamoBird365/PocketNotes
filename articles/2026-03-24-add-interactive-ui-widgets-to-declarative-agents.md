@@ -2,6 +2,7 @@
 title: Add interactive UI widgets to declarative agents
 url: https://learn.microsoft.com/en-us/microsoft-365/copilot/extensibility/declarative-agent-ui-widgets
 date_saved: 2026-03-24T16:55:27.049Z
+content_type: documentation
 source_platform: microsoft-learn
 summary: The article discusses how to integrate interactive UI widgets into
   declarative agents using a Model Context Protocol (MCP) server and the OpenAI
@@ -10,6 +11,7 @@ summary: The article discusses how to integrate interactive UI widgets into
   importance of checking API availability and implementing proper
   authentication.
 tags:
+  - microsoft-official
   - microsoft-365
   - openai-apps-sdk
   - declarative-agents

@@ -138,7 +138,55 @@ async function fetchArticle(url) {
     }
   }
 
-  return { title, textContent, excerpt, sourcePlatform, url };
+  // Extract author from meta tags or structured data
+  const author = extractAuthor(dom, article);
+
+  return { title, textContent, excerpt, sourcePlatform, url, author };
+}
+
+function extractAuthor(dom, readabilityArticle) {
+  const doc = dom.window.document;
+
+  // Try common author meta tags (in priority order)
+  const authorMeta =
+    getMetaContent(dom, "author") ||
+    getMetaContent(dom, "article:author") ||
+    getMetaContent(dom, "og:article:author") ||
+    getMetaContent(dom, "twitter:creator") ||
+    getMetaContent(dom, "citation_author") ||
+    "";
+
+  if (authorMeta) return authorMeta;
+
+  // Try Readability's byline
+  if (readabilityArticle?.byline) return readabilityArticle.byline;
+
+  // Try schema.org JSON-LD
+  try {
+    const scripts = doc.querySelectorAll('script[type="application/ld+json"]');
+    for (const script of scripts) {
+      const data = JSON.parse(script.textContent);
+      const items = Array.isArray(data) ? data : [data];
+      for (const item of items) {
+        const authorObj = item?.author;
+        if (typeof authorObj === "string") return authorObj;
+        if (authorObj?.name) return authorObj.name;
+        if (Array.isArray(authorObj) && authorObj[0]?.name) return authorObj[0].name;
+      }
+    }
+  } catch { /* JSON-LD parse failed */ }
+
+  // Try common HTML patterns
+  const selectors = [
+    '[rel="author"]', '.author-name', '.author', '.byline',
+    '[itemprop="author"]', '.post-author', '.entry-author',
+  ];
+  for (const sel of selectors) {
+    const el = doc.querySelector(sel);
+    if (el?.textContent?.trim()) return el.textContent.trim();
+  }
+
+  return "";
 }
 
 function getMetaContent(dom, name) {
@@ -194,6 +242,7 @@ function extractYouTube(dom, url, html) {
     excerpt: description.slice(0, 300),
     sourcePlatform: "youtube",
     url,
+    author: channelName,
   };
 }
 
@@ -221,6 +270,7 @@ async function fetchYouTubeOEmbed(url, fallbackDescription) {
       excerpt: fallbackDescription?.slice(0, 300) || `YouTube video: ${title}`,
       sourcePlatform: "youtube",
       url,
+      author: channelName,
     };
   } catch (e) {
     console.warn(`⚠️  oEmbed failed: ${e.message}`);
@@ -230,6 +280,7 @@ async function fetchYouTubeOEmbed(url, fallbackDescription) {
       excerpt: "",
       sourcePlatform: "youtube",
       url,
+      author: "",
     };
   }
 }
@@ -238,6 +289,7 @@ function extractFromMetaTags(dom, url, sourcePlatform) {
   const title = getMetaContent(dom, "og:title") ||
     dom.window.document.querySelector("title")?.textContent || "Untitled";
   const description = getMetaContent(dom, "og:description") || getMetaContent(dom, "description") || "";
+  const author = getMetaContent(dom, "author") || getMetaContent(dom, "twitter:creator") || "";
 
   return {
     title,
@@ -245,6 +297,7 @@ function extractFromMetaTags(dom, url, sourcePlatform) {
     excerpt: description.slice(0, 300),
     sourcePlatform,
     url,
+    author,
   };
 }
 
@@ -266,6 +319,8 @@ function detectPlatform(url) {
     "stackoverflow.com": "stack-overflow",
     "learn.microsoft.com": "microsoft-learn",
     "techcommunity.microsoft.com": "microsoft-tech-community",
+    "developer.microsoft.com": "microsoft-developer",
+    "devblogs.microsoft.com": "microsoft-devblogs",
     "powerautomate.microsoft.com": "power-automate",
     "powerapps.microsoft.com": "power-apps",
   };
@@ -300,6 +355,8 @@ function detectContentType(url, sourcePlatform) {
     "hashnode": "article",
     "microsoft-learn": "documentation",
     "microsoft-tech-community": "article",
+    "microsoft-developer": "article",
+    "microsoft-devblogs": "article",
     "power-automate": "documentation",
     "power-apps": "documentation",
   };
@@ -472,16 +529,31 @@ async function callAzureOpenAI(prompt, model) {
 function generateMarkdown(article, aiResult, config, note) {
   const now = new Date().toISOString();
   const contentType = detectContentType(article.url, article.sourcePlatform);
+  const isMicrosoftOfficial = [
+    "microsoft-learn", "microsoft-tech-community", "microsoft-developer",
+    "microsoft-devblogs", "power-automate", "power-apps",
+  ].includes(article.sourcePlatform) || /\.microsoft\.com$/i.test(new URL(article.url).hostname);
+
+  // Add microsoft-official tag if from a Microsoft domain
+  const tags = [...aiResult.tags];
+  if (isMicrosoftOfficial && !tags.includes("microsoft-official")) {
+    tags.unshift("microsoft-official");
+  }
+
   const frontmatter = {
     title: article.title,
     url: article.url,
     date_saved: now,
     content_type: contentType,
     source_platform: article.sourcePlatform,
+    author: article.author || "",
     summary: aiResult.summary,
-    tags: aiResult.tags,
+    tags,
     read: false,
   };
+
+  // Remove empty author
+  if (!frontmatter.author) delete frontmatter.author;
 
   if (note) {
     frontmatter.note = note;
