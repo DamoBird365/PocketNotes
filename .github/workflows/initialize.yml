@@ -1,0 +1,62 @@
+name: Initialize New PocketNotes Instance
+
+# Runs once when someone creates a repo from this template
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  initialize:
+    runs-on: ubuntu-latest
+    # Only run if this is a freshly created repo from the template
+    # (the template owner's articles will exist but the repo will have ≤2 commits)
+    steps:
+      - name: Check if this is a new instance
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          COMMIT_COUNT=$(gh api repos/${{ github.repository }}/commits --paginate -q '. | length' 2>/dev/null || echo "0")
+          echo "Commit count: $COMMIT_COUNT"
+          if [ "$COMMIT_COUNT" -le "2" ]; then
+            # Check if there are real articles (not just .gitkeep)
+            ARTICLE_COUNT=$(find articles/ -name "*.md" 2>/dev/null | wc -l || echo "0")
+            echo "Article count: $ARTICLE_COUNT"
+            if [ "$ARTICLE_COUNT" -gt "0" ]; then
+              echo "is_new=true" >> $GITHUB_OUTPUT
+            else
+              echo "is_new=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "is_new=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Checkout
+        if: steps.check.outputs.is_new == 'true'
+        uses: actions/checkout@v4
+
+      - name: Clean template articles
+        if: steps.check.outputs.is_new == 'true'
+        run: |
+          echo "🧹 Cleaning template owner's articles..."
+          find articles/ -name "*.md" -delete
+          echo "✅ Articles folder cleaned. Ready for your own articles!"
+
+      - name: Commit clean state
+        if: steps.check.outputs.is_new == 'true'
+        run: |
+          git config user.name "PocketNotes Bot"
+          git config user.email "pocketnotes[bot]@users.noreply.github.com"
+          git add articles/
+          git diff --cached --quiet && echo "Nothing to clean" && exit 0
+          git commit -m "🧹 Initialize: removed template articles"
+          git push
+
+      - name: Disable this workflow
+        if: steps.check.outputs.is_new == 'true'
+        run: |
+          echo "ℹ️ This workflow only runs once on new instances."
+          echo "You can safely delete .github/workflows/initialize.yml if you like."
